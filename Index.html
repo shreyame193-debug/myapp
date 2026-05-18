@@ -1,0 +1,1099 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Cravings | The Foodie Kitchen & AI Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --brand-primary: #f97316;
+            --brand-dark: #431407;
+            --brand-cream: #fffaf5;
+        }
+
+        body { 
+            font-family: 'Outfit', sans-serif; 
+            scroll-behavior: smooth; 
+            background-color: var(--brand-cream);
+        }
+
+        h1, h2, h3, h4, .serif { font-family: 'Playfair Display', serif; }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #fed7aa; border-radius: 20px; }
+
+        .food-pattern {
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f97316' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .cuisine-tab.active {
+            background-color: var(--brand-dark);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-up { animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        .plate-sidebar, .ai-sidebar {
+            transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+        .sidebar-hidden-right { 
+            transform: translateX(100%); 
+        }
+
+        .dish-card img {
+            transition: transform 0.8s cubic-bezier(0.2, 1, 0.3, 1);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            transform: translateZ(0);
+        }
+        .dish-card:hover img { transform: scale(1.08); }
+
+        .payment-chip.active {
+            border-color: var(--brand-primary);
+            background-color: #fff7ed;
+            color: var(--brand-primary);
+        }
+
+        #floating-status-bar {
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .status-hidden { transform: translate(-50%, 150%) scale(0.9); opacity: 0; pointer-events: none; }
+        .status-visible { transform: translate(-50%, 0) scale(1); opacity: 1; pointer-events: auto; }
+
+        /* Progress Step Styling */
+        .progress-step { position: relative; }
+        .progress-step::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 40px;
+            bottom: -20px;
+            width: 2px;
+            background: #e2e8f0;
+            z-index: 0;
+        }
+        .progress-step:last-child::before { display: none; }
+        .step-active .step-icon { background: var(--brand-primary); color: white; border-color: var(--brand-primary); box-shadow: 0 0 15px rgba(249, 115, 22, 0.4); }
+        .step-completed .step-icon { background: #22c55e; color: white; border-color: #22c55e; }
+
+        /* Segmented Toggle Styling */
+        .diet-btn.active {
+            background: white;
+            color: var(--brand-dark);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        .diet-btn:not(.active) {
+            color: #9a3412;
+            opacity: 0.5;
+        }
+
+        /* Glassmorphism utility */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="text-[#431407] food-pattern">
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl border-b border-orange-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3 shrink-0">
+                <div class="w-12 h-12 bg-orange-600 rounded-2xl rotate-3 flex items-center justify-center text-white shadow-xl shadow-orange-200">
+                    <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/></svg>
+                </div>
+                <div class="hidden md:block">
+                    <h1 class="text-2xl font-black tracking-tight leading-none text-orange-950">CAMPUS<span class="text-orange-600">CRAVINGS</span></h1>
+                    <p class="text-[10px] uppercase tracking-[0.3em] font-bold text-orange-900/40">The Global Student Kitchen</p>
+                </div>
+            </div>
+
+            <!-- Diet Switcher -->
+            <div class="flex bg-orange-100/50 p-1 rounded-full border border-orange-100 shrink-0">
+                <button onclick="updateDiet('all')" id="diet-all" class="diet-btn active px-3 sm:px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all">All</button>
+                <button onclick="updateDiet('veg')" id="diet-veg" class="diet-btn px-3 sm:px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1">
+                    <div class="w-1.5 h-1.5 rounded-full bg-green-500"></div> Veg
+                </button>
+                <button onclick="updateDiet('non-veg')" id="diet-non" class="diet-btn px-3 sm:px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1">
+                    <div class="w-1.5 h-1.5 rounded-full bg-red-500"></div> Non-Veg
+                </button>
+            </div>
+
+            <div class="flex items-center gap-2 sm:gap-4 shrink-0">
+                <!-- AI Chef Toggle -->
+                <button onclick="toggleAIChef()" class="relative flex items-center justify-center w-11 h-11 bg-orange-100 text-orange-700 rounded-full hover:bg-orange-200 transition-all active:scale-95 group" title="Ask Chef Joy AI">
+                    <span class="absolute -top-1 -right-1 flex h-3 w-3">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span>
+                    </span>
+                    <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                </button>
+
+                <!-- My Order Cart Toggle -->
+                <button onclick="togglePlate()" class="relative flex items-center gap-2 sm:gap-4 bg-[#431407] text-white pl-4 pr-2 sm:pl-6 sm:pr-2 py-2 rounded-full hover:bg-orange-600 transition-all active:scale-95 group">
+                    <span class="hidden sm:inline text-sm font-bold tracking-wide">My Order</span>
+                    <div id="badge-count" class="bg-orange-500 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black border-2 border-[#431407] group-hover:border-orange-600 hidden">0</div>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header Section -->
+    <header class="pt-36 pb-8 px-4 text-center max-w-4xl mx-auto">
+        <span class="inline-block px-4 py-1.5 bg-orange-100 text-orange-700 rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-6 animate-slide-up">Open for Lunch & Dinner</span>
+        <h2 class="text-5xl md:text-7xl font-black mb-6 leading-[0.9] text-orange-950 animate-slide-up" style="animation-delay: 0.1s">Fuel your <span class="text-orange-600 italic serif">ambition</span>, one bite at a time.</h2>
+        <p class="text-orange-900/60 text-lg md:text-xl font-medium mb-8 animate-slide-up" style="animation-delay: 0.2s">Authentic premium ingredients, designed for student life. Quick, affordable, and crafted by culinary experts.</p>
+        
+        <!-- Live Promo Banner with Copiable Coupons -->
+        <div class="max-w-xl mx-auto bg-orange-50 border border-orange-200 p-4 rounded-2xl flex flex-wrap items-center justify-around gap-3 text-sm font-bold shadow-sm animate-slide-up" style="animation-delay: 0.3s">
+            <span class="text-xs uppercase text-orange-800 tracking-wider">🎉 Active Campus Offers:</span>
+            <div class="flex gap-3">
+                <button onclick="copyCouponText('FRESHER20')" class="bg-white border border-orange-200 px-3 py-1.5 rounded-xl hover:bg-orange-100 transition-all text-xs flex items-center gap-1.5">
+                    <span class="text-orange-600 font-mono">FRESHER20</span> <span class="text-[10px] text-gray-400 font-normal">(Copy 20% Off)</span>
+                </button>
+                <button onclick="copyCouponText('CRAVE10')" class="bg-white border border-orange-200 px-3 py-1.5 rounded-xl hover:bg-orange-100 transition-all text-xs flex items-center gap-1.5">
+                    <span class="text-orange-600 font-mono">CRAVE10</span> <span class="text-[10px] text-gray-400 font-normal">(Copy 10% Off)</span>
+                </button>
+            </div>
+        </div>
+        <div id="copy-toast" class="text-xs font-bold text-green-600 mt-2 opacity-0 transition-opacity duration-300">Code copied to clipboard!</div>
+    </header>
+
+    <!-- Search & Filters Container -->
+    <div class="sticky top-20 z-40 bg-white/60 backdrop-blur-md border-y border-orange-100 py-4 mb-12 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col gap-4">
+            <!-- Search & Sorting Controls -->
+            <div class="flex flex-col md:flex-row items-stretch md:items-center gap-3">
+                <div class="relative flex-grow">
+                    <input type="text" id="menu-search" oninput="handleFilterAndSearch()" placeholder="Craving something? (e.g. Dosa, Paneer, NYC Cheesecake...)" class="w-full bg-white border border-orange-100 rounded-2xl pl-12 pr-4 py-3.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-500 placeholder:text-orange-950/40 shadow-inner">
+                    <div class="absolute left-4 top-1/2 -translate-y-1/2 text-orange-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                    <span class="text-xs font-bold uppercase tracking-wider text-orange-900/60 hidden sm:inline">Sort By:</span>
+                    <select id="menu-sort" onchange="handleFilterAndSearch()" class="bg-white border border-orange-100 rounded-2xl px-4 py-3.5 text-xs font-bold text-orange-950 focus:outline-none focus:ring-2 focus:ring-orange-500 shadow-sm cursor-pointer">
+                        <option value="popular">⭐ Recommended / Top Rated</option>
+                        <option value="price-low">💸 Price: Low to High</option>
+                        <option value="price-high">📈 Price: High to Low</option>
+                        <option value="prep-time">⏱️ Quickest Prep Time</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Cuisine Filtering Tabs -->
+            <div class="flex gap-2 overflow-x-auto no-scrollbar justify-start md:justify-center py-1">
+                <button onclick="filterCuisine('all')" class="cuisine-tab active px-6 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all bg-white shadow-sm border border-orange-50 hover:border-orange-200">🍽️ All Flavors</button>
+                <button onclick="filterCuisine('South Indian')" class="cuisine-tab px-6 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all bg-white shadow-sm border border-orange-50 hover:border-orange-200">🥥 South Indian</button>
+                <button onclick="filterCuisine('North Indian')" class="cuisine-tab px-6 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all bg-white shadow-sm border border-orange-50 hover:border-orange-200">🥘 North Indian</button>
+                <button onclick="filterCuisine('Chinese')" class="cuisine-tab px-6 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all bg-white shadow-sm border border-orange-50 hover:border-orange-200">🥢 Chinese</button>
+                <button onclick="filterCuisine('Italian')" class="cuisine-tab px-6 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all bg-white shadow-sm border border-orange-50 hover:border-orange-200">🍕 Italian</button>
+                <button onclick="filterCuisine('Desserts')" class="cuisine-tab px-6 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all bg-white shadow-sm border border-orange-50 hover:border-orange-200">🧁 Desserts</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Menu Grid -->
+    <main class="max-w-7xl mx-auto px-4 pb-40">
+        <div id="menu-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            <!-- Items injected dynamically -->
+        </div>
+    </main>
+
+    <!-- Floating Status Bar -->
+    <div id="floating-status-bar" class="status-hidden fixed bottom-10 left-1/2 -translate-x-1/2 w-[92%] max-w-lg z-50 bg-[#431407] text-white rounded-[2.2rem] shadow-2xl p-3 flex items-center justify-between border-4 border-orange-100/10">
+        <div class="flex items-center gap-4 pl-3">
+            <div class="relative">
+                <div class="w-12 h-12 bg-orange-600 rounded-xl rotate-6 flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                </div>
+            </div>
+            <div>
+                <p id="floating-count" class="text-xs font-black uppercase tracking-widest text-orange-400">0 Items Selected</p>
+                <p id="floating-price" class="text-lg font-bold">Total: ₹0.00</p>
+            </div>
+        </div>
+        <button onclick="togglePlate()" class="bg-white text-[#431407] px-8 py-3.5 rounded-[1.6rem] text-sm font-black hover:bg-orange-100 transition-all active:scale-95 shadow-xl">
+            Confirm Order
+        </button>
+    </div>
+
+    <!-- Sidebar Overlay -->
+    <div id="sidebar-overlay" onclick="closeAllSidebars()" class="fixed inset-0 bg-orange-950/40 backdrop-blur-sm z-[60] hidden transition-opacity"></div>
+    
+    <!-- Plate Sidebar (Cart) -->
+    <aside id="plate-sidebar" class="plate-sidebar sidebar-hidden-right fixed top-0 right-0 h-full w-full max-w-md bg-white z-[70] shadow-2xl flex flex-col border-l border-orange-50">
+        <div class="p-8 border-b border-orange-50 flex items-center justify-between bg-orange-50/50">
+            <div>
+                <h3 class="text-2xl font-black text-orange-950">Your Plate</h3>
+                <p class="text-[10px] uppercase font-bold text-orange-800/40 tracking-widest">Order Summary</p>
+            </div>
+            <button onclick="togglePlate()" class="w-10 h-10 flex items-center justify-center hover:bg-orange-100 rounded-full transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <div id="plate-items-container" class="flex-grow overflow-y-auto p-8 space-y-6 custom-scrollbar">
+            <!-- Items injected by JS -->
+        </div>
+
+        <!-- Details Section -->
+        <div class="p-8 bg-white border-t border-orange-100 space-y-6">
+            <div class="space-y-3">
+                <p class="text-[10px] font-black uppercase tracking-widest text-orange-800/40 flex justify-between">
+                    <span>Have a coupon?</span>
+                    <span class="text-orange-500 normal-case font-bold">Tap a code above to copy!</span>
+                </p>
+                <div class="flex gap-2">
+                    <input type="text" id="coupon-input" placeholder="e.g. FRESHER20" class="flex-grow bg-orange-50 border border-orange-100 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-orange-500 placeholder:text-orange-900/20">
+                    <button onclick="applyCoupon()" class="bg-[#431407] text-white px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-orange-700 transition-colors">Apply</button>
+                </div>
+                <p id="coupon-message" class="text-[11px] font-bold text-green-600 hidden"></p>
+            </div>
+
+            <div class="space-y-3">
+                <p class="text-[10px] font-black uppercase tracking-widest text-orange-800/40">Payment Method</p>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="setPayment('upi')" id="pay-upi" class="payment-chip active flex-grow border-2 border-slate-100 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all">UPI / Scan</button>
+                    <button onclick="setPayment('wallet')" id="pay-wallet" class="payment-chip flex-grow border-2 border-slate-100 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all">Wallet</button>
+                    <button onclick="setPayment('cash')" id="pay-cash" class="payment-chip flex-grow border-2 border-slate-100 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all">Cash</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grand Total -->
+        <div class="p-8 bg-orange-50 border-t border-orange-100 space-y-4">
+            <div class="space-y-2">
+                <div class="flex justify-between text-sm text-orange-900/60 font-bold uppercase tracking-wider">
+                    <span>Subtotal</span>
+                    <span id="subtotal-amount">₹0.00</span>
+                </div>
+                <div id="discount-row" class="hidden flex justify-between text-sm text-green-600 font-bold uppercase tracking-wider">
+                    <span>Coupon Discount</span>
+                    <span id="discount-amount">-₹0.00</span>
+                </div>
+            </div>
+            
+            <div class="pt-4 border-t border-orange-100 flex justify-between items-end">
+                <div>
+                    <p class="text-[10px] font-black text-orange-800/40 uppercase tracking-widest">Total Payable</p>
+                    <span id="total-amount" class="text-4xl font-black text-orange-600 tracking-tight">₹0.00</span>
+                </div>
+                <button onclick="placeOrder()" id="checkout-btn" disabled class="bg-[#431407] text-white px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest disabled:bg-orange-100 disabled:text-orange-300 disabled:cursor-not-allowed shadow-xl shadow-orange-900/10 transition-all">
+                    Finalize Order
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Chef Joy AI Assistant Drawer -->
+    <aside id="ai-chef-sidebar" class="ai-sidebar sidebar-hidden-right fixed top-0 right-0 h-full w-full max-w-md bg-[#431407] text-white z-[70] shadow-2xl flex flex-col border-l border-orange-900/30">
+        <!-- AI Header -->
+        <div class="p-8 border-b border-orange-900/30 flex items-center justify-between bg-orange-950/40">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-orange-600 rounded-xl flex items-center justify-center text-white font-black">👨‍🍳</div>
+                <div>
+                    <h3 class="text-xl font-black text-orange-100">Chef Joy</h3>
+                    <p class="text-[10px] uppercase font-bold text-orange-400 tracking-widest">AI Culinary Assistant</p>
+                </div>
+            </div>
+            <button onclick="toggleAIChef()" class="w-10 h-10 flex items-center justify-center hover:bg-orange-900/50 rounded-full transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <!-- Chat Messages Screen -->
+        <div id="ai-chat-messages" class="flex-grow overflow-y-auto p-6 space-y-4 custom-scrollbar text-sm">
+            <div class="bg-orange-950/40 p-4 rounded-2xl border border-orange-900/20 max-w-[85%] self-start">
+                <p class="font-bold text-orange-400 text-xs mb-1">Chef Joy</p>
+                <p class="text-orange-100 leading-relaxed">Hey foodie! 🎓 Food is fuel for your brilliant mind. Ask me anything about our campus menu!
+                <br><br>I can suggest high-protein options, recommend combos based on your budget, or customize items for allergies. Give it a try!</p>
+            </div>
+        </div>
+
+        <!-- Prompt Suggestions Grid -->
+        <div class="p-4 border-t border-orange-900/20 bg-orange-950/20">
+            <p class="text-[10px] font-bold text-orange-400/60 uppercase tracking-wider mb-2">💡 Quick Prompt Chips</p>
+            <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                <button onclick="sendQuickPrompt('What is the best high protein non-veg meal combination?')" class="bg-orange-900/40 hover:bg-orange-800 border border-orange-900/30 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap text-orange-200 transition-colors">🍗 High Protein Combo</button>
+                <button onclick="sendQuickPrompt('Suggest a tasty vegetarian lunch under ₹150')" class="bg-orange-900/40 hover:bg-orange-800 border border-orange-900/30 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap text-orange-200 transition-colors">💸 Under ₹150 Veg</button>
+                <button onclick="sendQuickPrompt('Are there gluten-free desserts available here?')" class="bg-orange-900/40 hover:bg-orange-800 border border-orange-900/30 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap text-orange-200 transition-colors">🧁 Gluten-free Desserts</button>
+            </div>
+        </div>
+
+        <!-- AI Text Input Area -->
+        <div class="p-6 border-t border-orange-900/30 bg-orange-950/40 flex gap-2">
+            <input type="text" id="ai-user-input" onkeydown="handleAISubmit(event)" placeholder="Ask Chef Joy... (e.g., Any spicy recommendations?)" class="flex-grow bg-orange-950/80 border border-orange-900/50 rounded-xl px-4 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-500 placeholder:text-orange-200/20 text-white">
+            <button onclick="submitAIChat()" class="bg-orange-600 hover:bg-orange-500 text-white px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-colors flex items-center justify-center">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/></svg>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Customization / Food Detail Modal -->
+    <div id="custom-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-orange-950/80 backdrop-blur-md">
+        <div class="bg-white w-full max-w-xl rounded-[2.5rem] p-8 shadow-2xl animate-slide-up border-4 border-orange-100 overflow-y-auto max-h-[90vh] custom-scrollbar">
+            <!-- Header elements -->
+            <div class="flex justify-between items-start gap-4 mb-4">
+                <div>
+                    <span id="modal-cuisine-badge" class="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest">Cuisine</span>
+                    <h3 id="modal-dish-name" class="text-3xl font-black text-orange-950 mt-1 leading-tight">Dish Name</h3>
+                    <p id="modal-dish-desc" class="text-orange-900/60 text-xs mt-1 leading-relaxed">Crispy ghee roast dosa stuffed with chef spices.</p>
+                </div>
+                <button onclick="closeCustomModal()" class="w-10 h-10 bg-orange-50 hover:bg-orange-100 rounded-full flex items-center justify-center text-orange-950 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <!-- Image & Info Box -->
+            <div class="relative w-full h-48 rounded-2xl overflow-hidden mb-6 bg-orange-100">
+                <img id="modal-dish-image" class="w-full h-full object-cover" src="" alt="">
+                <div class="absolute bottom-4 right-4 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/40 shadow-md text-xs font-bold text-orange-950 flex items-center gap-1">
+                    ⭐ <span id="modal-dish-rating">4.8</span> <span class="text-orange-900/40">|</span> ⏱️ <span id="modal-dish-time">12 mins</span>
+                </div>
+            </div>
+
+            <!-- Nutritional Info Grid -->
+            <div class="bg-orange-50/50 p-4 rounded-2xl border border-orange-100 mb-6">
+                <p class="text-[10px] font-black uppercase text-orange-800/60 tracking-wider mb-2">🔬 Approx Nutrition Per Serving</p>
+                <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                    <div class="bg-white p-2 rounded-xl border border-orange-100/50">
+                        <span class="block font-black text-orange-600" id="modal-calories">340 kcal</span>
+                        <span class="text-[9px] uppercase font-bold text-orange-900/40">Energy</span>
+                    </div>
+                    <div class="bg-white p-2 rounded-xl border border-orange-100/50">
+                        <span class="block font-black text-green-600" id="modal-protein">8g</span>
+                        <span class="text-[9px] uppercase font-bold text-orange-900/40">Protein</span>
+                    </div>
+                    <div class="bg-white p-2 rounded-xl border border-orange-100/50">
+                        <span class="block font-black text-blue-600" id="modal-carbs">42g</span>
+                        <span class="text-[9px] uppercase font-bold text-orange-900/40">Carbs</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customizable Form -->
+            <div class="space-y-6">
+                <!-- Spice Selection -->
+                <div id="modal-spice-section">
+                    <label class="text-[10px] font-black uppercase text-orange-800/60 tracking-wider block mb-2">🔥 Spice Level Indicator</label>
+                    <div class="flex gap-2">
+                        <button onclick="setSpiceLevel('Mild')" id="spice-Mild" class="spice-btn border-2 border-orange-100 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider flex-grow transition-all">Mild</button>
+                        <button onclick="setSpiceLevel('Medium')" id="spice-Medium" class="spice-btn border-2 border-orange-100 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider flex-grow transition-all active">Medium</button>
+                        <button onclick="setSpiceLevel('Hot')" id="spice-Hot" class="spice-btn border-2 border-orange-100 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider flex-grow transition-all">Spicy 🔥</button>
+                    </div>
+                </div>
+
+                <!-- Upgradable Extras -->
+                <div>
+                    <label class="text-[10px] font-black uppercase text-orange-800/60 tracking-wider block mb-2">➕ Delicious Upgrades / Add-ons</label>
+                    <div class="space-y-2" id="addons-container">
+                        <!-- Add-on options built dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Pricing & Checkout Add -->
+            <div class="mt-8 pt-6 border-t border-orange-100 flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] font-black text-orange-800/40 uppercase tracking-widest">Customized Total</p>
+                    <span id="modal-customized-total" class="text-3xl font-black text-orange-600">₹110</span>
+                </div>
+                <button onclick="addCustomizedItemToPlate()" class="bg-[#431407] hover:bg-orange-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl">
+                    Add Customized Item
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Order Tracking Progress Modal -->
+    <div id="progress-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-orange-950/90 backdrop-blur-xl">
+        <div class="bg-white w-full max-w-lg rounded-[3rem] p-10 shadow-2xl animate-slide-up border-8 border-orange-50 overflow-hidden relative">
+            <div class="absolute top-0 left-0 w-full h-2 bg-orange-100">
+                <div id="order-loading-bar" class="h-full bg-orange-600 transition-all duration-1000" style="width: 0%"></div>
+            </div>
+
+            <div class="text-center mb-10">
+                <h4 class="text-3xl font-black text-orange-950">Campus Chef Tracking</h4>
+                <p id="token-display-large" class="text-orange-600 font-black text-xl mt-2 tracking-tighter">Token #000</p>
+                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Simulated Live Cooking Loop</p>
+            </div>
+
+            <div class="space-y-12 max-w-xs mx-auto mb-10">
+                <div id="step-1" class="progress-step step-active flex items-start gap-6">
+                    <div class="step-icon w-10 h-10 rounded-full border-2 border-slate-200 flex items-center justify-center text-sm font-black z-10 bg-white transition-all">1</div>
+                    <div>
+                        <p class="font-black text-orange-950 uppercase text-xs tracking-widest">Order Accepted</p>
+                        <p class="text-slate-400 text-[11px] font-medium">The kitchen has received your ticket.</p>
+                    </div>
+                </div>
+
+                <div id="step-2" class="progress-step flex items-start gap-6">
+                    <div class="step-icon w-10 h-10 rounded-full border-2 border-slate-200 flex items-center justify-center text-sm font-black z-10 bg-white transition-all">2</div>
+                    <div>
+                        <p class="font-black text-orange-950 uppercase text-xs tracking-widest">Being Cooked</p>
+                        <p class="text-slate-400 text-[11px] font-medium">Our Campus Chef is preparing your fresh meal.</p>
+                    </div>
+                </div>
+
+                <div id="step-3" class="progress-step flex items-start gap-6">
+                    <div class="step-icon w-10 h-10 rounded-full border-2 border-slate-200 flex items-center justify-center text-sm font-black z-10 bg-white transition-all">3</div>
+                    <div>
+                        <p class="font-black text-orange-950 uppercase text-xs tracking-widest">Ready to Collect</p>
+                        <p class="text-slate-400 text-[11px] font-medium">Head to Counter #4 for your plate!</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="ready-celebration" class="hidden text-center animate-bounce mb-6">
+                <span class="bg-green-100 text-green-700 px-6 py-2 rounded-full font-black text-xs uppercase tracking-widest">🍲 Order ready! Hot & fresh!</span>
+            </div>
+
+            <button id="close-progress-btn" onclick="closeProgress()" class="w-full bg-slate-100 text-slate-400 py-5 rounded-2xl font-black uppercase tracking-widest transition-all cursor-not-allowed" disabled>
+                Preparing...
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Expanded food menu dataset with nutrition, rating, prepTime and add-ons
+        const menuItems = [
+            // South Indian
+            { id: 1, name: "Ghee Roast Dosa", price: 110, cuisine: "South Indian", type: "veg", special: true, rating: 4.9, prepTime: 10, image: "https://images.unsplash.com/photo-1668236543090-82eba5ee5976?q=80&w=600&auto=format&fit=crop", desc: "Crispy, thin golden crepe loaded with clarified ghee, served with tangy sambhar & chutney.", calories: "320 kcal", protein: "7g", carbs: "45g" },
+            { id: 2, name: "Steamed Idli Sambhar", price: 65, cuisine: "South Indian", type: "veg", special: false, rating: 4.6, prepTime: 6, image: "https://images.unsplash.com/photo-1589302168068-964664d93dc0?q=80&w=600&auto=format&fit=crop", desc: "Fluffy white steamed rice and lentil cakes served with our classic slow-cooked sambhar stew.", calories: "180 kcal", protein: "5g", carbs: "38g" },
+            { id: 3, name: "Medu Vada Platter", price: 80, cuisine: "South Indian", type: "veg", special: false, rating: 4.7, prepTime: 8, image: "https://images.unsplash.com/photo-1626132646529-500637532537?q=80&w=600&auto=format&fit=crop", desc: "Crispy savory fried lentil donuts containing dynamic black pepper, ginger, and curry leaves.", calories: "290 kcal", protein: "6g", carbs: "32g" },
+            { id: 4, name: "Chicken 65 Dosa", price: 160, cuisine: "South Indian", type: "non-veg", special: true, rating: 4.9, prepTime: 12, image: "https://images.unsplash.com/photo-1610057099443-fde8c4d50f91?q=80&w=600&auto=format&fit=crop", desc: "Traditional South Indian dosa packed with spicy, shredded stir-fried Chicken 65 bits.", calories: "480 kcal", protein: "24g", carbs: "48g" },
+            
+            // North Indian
+            { id: 6, name: "Butter Chicken Meal", price: 260, cuisine: "North Indian", type: "non-veg", special: true, rating: 4.9, prepTime: 15, image: "https://images.unsplash.com/photo-1603894584134-f1c2baee4ef9?q=80&w=600&auto=format&fit=crop", desc: "Gourmet char-grilled tandoori chicken cooked inside a rich cream tomato sauce, served with naan.", calories: "620 kcal", protein: "34g", carbs: "52g" },
+            { id: 7, name: "Shahi Paneer", price: 210, cuisine: "North Indian", type: "veg", special: true, rating: 4.8, prepTime: 14, image: "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?q=80&w=600&auto=format&fit=crop", desc: "Premium cottage cheese cubes simmered beautifully in our signature cashew cream onion-tomato gravy.", calories: "490 kcal", protein: "18g", carbs: "22g" },
+            { id: 25, name: "Malai Kofta", price: 180, cuisine: "North Indian", type: "veg", special: false, rating: 4.5, prepTime: 12, image: "https://images.unsplash.com/photo-1645177623570-ad485afb0701?q=80&w=600&auto=format&fit=crop", desc: "Melting potato and paneer kofta dumplings cooked in a silky sweet, golden gravy.", calories: "450 kcal", protein: "12g", carbs: "36g" },
+            { id: 9, name: "Chole Bhature", price: 120, cuisine: "North Indian", type: "veg", special: false, rating: 4.7, prepTime: 9, image: "https://images.unsplash.com/photo-1596797038530-2c39fa81b487?q=80&w=600&auto=format&fit=crop", desc: "Robust spiced chickpea masala paired alongside puffy, piping hot leavened bread.", calories: "550 kcal", protein: "14g", carbs: "75g" },
+            { id: 10, name: "Mutton Rogan Josh", price: 295, cuisine: "North Indian", type: "non-veg", special: true, rating: 4.8, prepTime: 18, image: "https://images.unsplash.com/photo-1545247181-516773cae754?q=80&w=600&auto=format&fit=crop", desc: "Aromatic slow-cooked Kashmiri lamb leg curry featuring a deep red blend of traditional spices.", calories: "590 kcal", protein: "38g", carbs: "12g" },
+
+            // Chinese
+            { id: 11, name: "Hakka Veg Noodles", price: 145, cuisine: "Chinese", type: "veg", special: false, rating: 4.4, prepTime: 10, image: "https://images.unsplash.com/photo-1585032226651-759b368d7246?q=80&w=600&auto=format&fit=crop", desc: "High-heat wok-tossed long wheat noodles thrown with fresh ginger, garlic, and crisp greens.", calories: "280 kcal", protein: "6g", carbs: "52g" },
+            { id: 26, name: "Chili Chicken Dry", price: 195, cuisine: "Chinese", type: "non-veg", special: true, rating: 4.8, prepTime: 12, image: "https://images.unsplash.com/photo-1525755662778-989d0524087e?q=80&w=600&auto=format&fit=crop", desc: "Deep-fried premium chicken chunks tossed alongside colorful bell peppers, green chilies, and soy sauce.", calories: "380 kcal", protein: "28g", carbs: "18g" },
+            { id: 28, name: "Egg Fried Rice", price: 130, cuisine: "Chinese", type: "non-veg", special: false, rating: 4.5, prepTime: 9, image: "https://images.unsplash.com/photo-1603133872878-684f208fb84b?q=80&w=600&auto=format&fit=crop", desc: "Classic pan-fried jasmine rice containing scrambled eggs, local spring onions, and premium spices.", calories: "340 kcal", protein: "12g", carbs: "48g" },
+            { id: 29, name: "Schezwan Noodles", price: 150, cuisine: "Chinese", type: "veg", special: true, rating: 4.6, prepTime: 11, image: "https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?q=80&w=600&auto=format&fit=crop", desc: "Fiery Schezwan infused noodles wok-tossed with spicy chili oil paste and fresh vegetables.", calories: "310 kcal", protein: "7g", carbs: "56g" },
+
+            // Italian
+            { id: 14, name: "Margherita Pizza", price: 290, cuisine: "Italian", type: "veg", special: true, rating: 4.8, prepTime: 15, image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=600&auto=format&fit=crop", desc: "Authentic thin crust featuring imported San Marzano sauce, real mozzarella cheese, and sweet basil leaves.", calories: "680 kcal", protein: "26g", carbs: "84g" },
+            { id: 15, name: "Chicken Alfredo", price: 275, cuisine: "Italian", type: "non-veg", special: false, rating: 4.7, prepTime: 14, image: "https://images.unsplash.com/photo-1473093226795-af9932fe5855?q=80&w=600&auto=format&fit=crop", desc: "Linguine pasta combined with pan-seared juicy chicken breast strips inside real butter-cream Alfredo sauce.", calories: "720 kcal", protein: "36g", carbs: "68g" },
+
+            // Desserts
+            { id: 17, name: "NYC Cheesecake", price: 195, cuisine: "Desserts", type: "veg", special: true, rating: 4.9, prepTime: 5, image: "https://images.unsplash.com/photo-1533134242443-d4fd215305ad?q=80&w=600&auto=format&fit=crop", desc: "Velvety, premium rich New York styled vanilla cheesecake baked on a signature honey-graham crust.", calories: "410 kcal", protein: "6g", carbs: "44g" },
+            { id: 18, name: "Double Choco Lava", price: 155, cuisine: "Desserts", type: "veg", special: false, rating: 4.8, prepTime: 8, image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?q=80&w=600&auto=format&fit=crop", desc: "Indulgent warm chocolate sponge cake that oozes delicious melted dark Belgian chocolate syrup.", calories: "390 kcal", protein: "5g", carbs: "48g" }
+        ];
+
+        // Global State variables
+        let plate = [];
+        let discountPercent = 0;
+        let selectedPayment = 'upi';
+        let currentCuisine = 'all';
+        let currentDiet = 'all';
+
+        // Customization Modal State
+        let activeCustomItem = null;
+        let activeSpiceLevel = 'Medium';
+        let activeAddons = [];
+
+        const coupons = { "FRESHER20": 20, "CRAVE10": 10, "CAMPUS50": 50 };
+        const apiKey = ""; // Runtime automatically injects the Gemini key
+
+        // Web Audio Synthesizer for Immersive Student UX
+        function playSoundChime(type) {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                if (type === 'add') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+                    osc.frequency.exponentialRampToValueAtTime(659.25, ctx.currentTime + 0.12); // E5
+                    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.15);
+                } else if (type === 'success') {
+                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.frequency.value = freq;
+                        gain.gain.setValueAtTime(0, ctx.currentTime);
+                        gain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + idx * 0.06);
+                        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + idx * 0.06 + 0.25);
+                        osc.start(ctx.currentTime + idx * 0.06);
+                        osc.stop(ctx.currentTime + idx * 0.06 + 0.25);
+                    });
+                } else if (type === 'bell') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.frequency.setValueAtTime(880.00, ctx.currentTime); // A5
+                    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.6);
+                }
+            } catch (err) {
+                // Browser blocks audio context until manual click, suppress errors safely
+            }
+        }
+
+        // Clip board helper for coupon copy
+        function copyCouponText(text) {
+            const tempInput = document.createElement("input");
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            // Toast feedback
+            const toast = document.getElementById('copy-toast');
+            toast.innerText = `Successfully copied coupon code: "${text}"!`;
+            toast.style.opacity = '1';
+            playSoundChime('add');
+            setTimeout(() => {
+                toast.style.opacity = '0';
+            }, 2500);
+
+            // Automatically place it inside input if plate sidebar is open
+            document.getElementById('coupon-input').value = text;
+        }
+
+        // Diet filters
+        function updateDiet(type) {
+            currentDiet = type;
+            document.querySelectorAll('.diet-btn').forEach(btn => btn.classList.remove('active'));
+            if(type === 'all') document.getElementById('diet-all').classList.add('active');
+            if(type === 'veg') document.getElementById('diet-veg').classList.add('active');
+            if(type === 'non-veg') document.getElementById('diet-non').classList.add('active');
+            handleFilterAndSearch();
+        }
+
+        // Cuisine filters
+        function filterCuisine(cuisine) {
+            currentCuisine = cuisine;
+            const tabs = document.querySelectorAll('.cuisine-tab');
+            tabs.forEach(tab => {
+                if (tab.innerText.toLowerCase().includes(cuisine.toLowerCase()) || (cuisine === 'all' && tab.innerText.includes('All'))) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            handleFilterAndSearch();
+        }
+
+        // Core filter / search routing combined
+        function handleFilterAndSearch() {
+            const query = document.getElementById('menu-search').value.toLowerCase().trim();
+            const sorting = document.getElementById('menu-sort').value;
+            
+            let filtered = menuItems;
+
+            // Step 1: Filter Cuisine
+            if (currentCuisine !== 'all') {
+                filtered = filtered.filter(item => item.cuisine === currentCuisine);
+            }
+
+            // Step 2: Filter Diet
+            if (currentDiet !== 'all') {
+                filtered = filtered.filter(item => item.type === currentDiet);
+            }
+
+            // Step 3: Search Query
+            if (query.length > 0) {
+                filtered = filtered.filter(item => 
+                    item.name.toLowerCase().includes(query) || 
+                    item.desc.toLowerCase().includes(query) ||
+                    item.cuisine.toLowerCase().includes(query)
+                );
+            }
+
+            // Step 4: Sorting Logic
+            if (sorting === 'price-low') {
+                filtered.sort((a, b) => a.price - b.price);
+            } else if (sorting === 'price-high') {
+                filtered.sort((a, b) => b.price - a.price);
+            } else if (sorting === 'prep-time') {
+                filtered.sort((a, b) => a.prepTime - b.prepTime);
+            } else if (sorting === 'popular') {
+                filtered.sort((a, b) => b.rating - a.rating);
+            }
+
+            renderMenu(filtered);
+        }
+
+        function cancelDishIfNoImage(imgElement) {
+            const card = imgElement.closest('.dish-card');
+            if (card) { 
+                card.remove(); 
+                checkEmptyMenu(); 
+            }
+        }
+
+        function checkEmptyMenu() {
+            const grid = document.getElementById('menu-grid');
+            if (grid.children.length === 0) {
+                grid.innerHTML = '<div class="col-span-full text-center py-20 text-orange-900/40 font-bold uppercase tracking-widest">No matching dishes available right now</div>';
+            }
+        }
+
+        // Render food cards to UI
+        function renderMenu(items) {
+            const grid = document.getElementById('menu-grid');
+            grid.innerHTML = items.map(item => `
+                <div class="animate-slide-up group flex flex-col dish-card cursor-pointer" id="dish-${item.id}">
+                    <div onclick="openCustomModal(${item.id})" class="relative mb-6 overflow-hidden rounded-[2.5rem] aspect-[5/6] bg-orange-100 shadow-xl transform-gpu">
+                        <img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover" onerror="cancelDishIfNoImage(this)">
+                        <div class="absolute top-4 left-4 z-10 flex gap-2">
+                            <span class="bg-white/95 backdrop-blur-md p-1.5 rounded-full border border-white shadow-sm flex items-center justify-center">
+                                <div class="w-3 h-3 rounded-full ${item.type === 'veg' ? 'bg-green-500' : 'bg-red-500'} ring-4 ring-white/30"></div>
+                            </span>
+                            ${item.special ? `<span class="bg-orange-600 text-white px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.2em] shadow-lg shadow-orange-600/30">Chef's Special</span>` : ''}
+                        </div>
+                        <div class="absolute bottom-4 left-4 bg-white/95 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold text-orange-950 flex items-center gap-1 shadow-md">
+                            ⭐ ${item.rating}
+                        </div>
+                    </div>
+                    <div onclick="openCustomModal(${item.id})" class="px-2 flex-grow">
+                        <div class="flex justify-between items-start mb-1">
+                            <h3 class="font-black text-xl text-orange-950 tracking-tight leading-tight hover:text-orange-600 transition-colors">${item.name}</h3>
+                            <span class="font-black text-orange-600 text-lg ml-2 shrink-0">₹${item.price}</span>
+                        </div>
+                        <p class="text-[11px] font-medium text-orange-900/50 mb-6 leading-relaxed line-clamp-2">${item.desc}</p>
+                    </div>
+                    <button onclick="openCustomModal(${item.id})" class="w-full bg-white text-orange-950 py-4 rounded-2xl text-xs font-black uppercase tracking-[0.2em] border-2 border-orange-50 hover:bg-[#431407] hover:text-white transition-all active:scale-95 shadow-sm">Customize & Add</button>
+                </div>
+            `).join('');
+            checkEmptyMenu();
+        }
+
+        // Customization Modal Logic
+        function openCustomModal(id) {
+            activeCustomItem = menuItems.find(item => item.id === id);
+            activeSpiceLevel = 'Medium';
+            activeAddons = [];
+
+            document.getElementById('modal-dish-name').innerText = activeCustomItem.name;
+            document.getElementById('modal-dish-desc').innerText = activeCustomItem.desc;
+            document.getElementById('modal-dish-image').src = activeCustomItem.image;
+            document.getElementById('modal-cuisine-badge').innerText = activeCustomItem.cuisine;
+            document.getElementById('modal-dish-rating').innerText = activeCustomItem.rating;
+            document.getElementById('modal-dish-time').innerText = `${activeCustomItem.prepTime} mins`;
+            document.getElementById('modal-calories').innerText = activeCustomItem.calories || "350 kcal";
+            document.getElementById('modal-protein').innerText = activeCustomItem.protein || "8g";
+            document.getElementById('modal-carbs').innerText = activeCustomItem.carbs || "40g";
+
+            // Hide spice indicator if dessert
+            if (activeCustomItem.cuisine === 'Desserts') {
+                document.getElementById('modal-spice-section').classList.add('hidden');
+            } else {
+                document.getElementById('modal-spice-section').classList.remove('hidden');
+            }
+
+            // Define custom upgrades depending on Veg/Non-Veg
+            const upgradeList = [
+                { id: 'extra_cheese', name: 'Extra Mozzarella Cheese', price: 30 },
+                { id: 'extra_veggies', name: 'Premium Loaded Herbs & Veggies', price: 20 }
+            ];
+
+            if (activeCustomItem.type === 'non-veg') {
+                upgradeList.push({ id: 'extra_chicken', name: 'Shredded Smoked Chicken Cubes', price: 50 });
+            } else {
+                upgradeList.push({ id: 'extra_paneer', name: 'Tandoori Spiced Paneer Cubes', price: 40 });
+            }
+
+            const addonsContainer = document.getElementById('addons-container');
+            addonsContainer.innerHTML = upgradeList.map(addon => `
+                <div class="flex items-center justify-between bg-orange-50/50 p-3 rounded-xl border border-orange-100">
+                    <label class="flex items-center gap-3 cursor-pointer select-none">
+                        <input type="checkbox" onchange="toggleAddon('${addon.id}', ${addon.price})" class="w-4 h-4 accent-orange-600 rounded">
+                        <span class="text-xs font-bold text-orange-950">${addon.name}</span>
+                    </label>
+                    <span class="text-xs font-black text-orange-600">+₹${addon.price}</span>
+                </div>
+            `).join('');
+
+            setSpiceLevel('Medium');
+            calculateCustomizedTotal();
+            
+            document.getElementById('custom-modal').classList.replace('hidden', 'flex');
+        }
+
+        function closeCustomModal() {
+            document.getElementById('custom-modal').classList.replace('flex', 'hidden');
+        }
+
+        function setSpiceLevel(level) {
+            activeSpiceLevel = level;
+            document.querySelectorAll('.spice-btn').forEach(btn => {
+                btn.style.backgroundColor = 'transparent';
+                btn.style.color = '#431407';
+                btn.style.borderColor = '#ffedd5';
+            });
+            const activeBtn = document.getElementById(`spice-${level}`);
+            activeBtn.style.backgroundColor = '#f97316';
+            activeBtn.style.color = 'white';
+            activeBtn.style.borderColor = '#f97316';
+        }
+
+        function toggleAddon(id, price) {
+            const index = activeAddons.findIndex(addon => addon.id === id);
+            if (index > -1) {
+                activeAddons.splice(index, 1);
+            } else {
+                activeAddons.push({ id, price });
+            }
+            calculateCustomizedTotal();
+        }
+
+        function calculateCustomizedTotal() {
+            let total = activeCustomItem.price;
+            activeAddons.forEach(addon => total += addon.price);
+            document.getElementById('modal-customized-total').innerText = `₹${total}`;
+        }
+
+        function addCustomizedItemToPlate() {
+            playSoundChime('add');
+            
+            // Build unique customized details
+            const addonsNames = activeAddons.map(add => {
+                if (add.id === 'extra_cheese') return 'Extra Cheese';
+                if (add.id === 'extra_veggies') return 'Extra Veg';
+                if (add.id === 'extra_chicken') return 'Double Chicken';
+                if (add.id === 'extra_paneer') return 'Paneer Cubes';
+                return '';
+            }).filter(Boolean);
+
+            const customizedString = `${activeCustomItem.cuisine !== 'Desserts' ? activeSpiceLevel + ' Spice' : ''} ${addonsNames.length > 0 ? '(+' + addonsNames.join(', ') + ')' : ''}`.trim();
+
+            const finalPrice = activeCustomItem.price + activeAddons.reduce((sum, item) => sum + item.price, 0);
+
+            // Match if same customized item already in plate
+            const existing = plate.find(p => p.id === activeCustomItem.id && p.customization === customizedString);
+            if (existing) {
+                existing.quantity += 1;
+            } else {
+                plate.push({
+                    id: activeCustomItem.id,
+                    name: activeCustomItem.name,
+                    price: finalPrice,
+                    image: activeCustomItem.image,
+                    cuisine: activeCustomItem.cuisine,
+                    customization: customizedString,
+                    quantity: 1
+                });
+            }
+
+            closeCustomModal();
+            updatePlateUI();
+        }
+
+        // Dynamic Plate Sidebar and state calculation
+        function updateQuantity(uniqueId, delta) {
+            // uniqueId is composed of id_customization
+            const item = plate.find(p => `${p.id}_${p.customization}` === uniqueId);
+            if (!item) return;
+            item.quantity += delta;
+            if (item.quantity <= 0) {
+                plate = plate.filter(p => `${p.id}_${p.customization}` !== uniqueId);
+            }
+            updatePlateUI();
+        }
+
+        function applyCoupon() {
+            const input = document.getElementById('coupon-input').value.toUpperCase().trim();
+            const message = document.getElementById('coupon-message');
+            if (coupons[input]) {
+                discountPercent = coupons[input];
+                message.innerText = `Coupon Applied Successfully! You saved ${discountPercent}%`;
+                message.className = 'text-[11px] font-bold text-green-600';
+                message.classList.remove('hidden');
+            } else {
+                discountPercent = 0;
+                message.innerText = "Invalid Coupon Code. Please try another code.";
+                message.className = 'text-[11px] font-bold text-red-600';
+                message.classList.remove('hidden');
+            }
+            updatePlateUI();
+        }
+
+        function setPayment(method) {
+            selectedPayment = method;
+            document.querySelectorAll('.payment-chip').forEach(chip => chip.classList.remove('active'));
+            document.getElementById(`pay-${method}`).classList.add('active');
+        }
+
+        function updatePlateUI() {
+            const container = document.getElementById('plate-items-container');
+            const badge = document.getElementById('badge-count');
+            const checkoutBtn = document.getElementById('checkout-btn');
+            const floatingBar = document.getElementById('floating-status-bar');
+            
+            const count = plate.reduce((sum, item) => sum + item.quantity, 0);
+            const sub = plate.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+            const discountAmount = (sub * discountPercent) / 100;
+            const finalTotal = sub - discountAmount;
+
+            if (count > 0) {
+                floatingBar.classList.replace('status-hidden', 'status-visible');
+                document.getElementById('floating-count').innerText = `${count} Item${count > 1 ? 's' : ''} Selected`;
+                document.getElementById('floating-price').innerHTML = `Total: ₹${finalTotal.toFixed(2)}`;
+            } else {
+                floatingBar.classList.replace('status-visible', 'status-hidden');
+            }
+
+            if (plate.length === 0) {
+                container.innerHTML = `<div class="h-full flex flex-col items-center justify-center opacity-40 text-center uppercase text-[10px] font-black tracking-widest py-12">Your plate is currently empty</div>`;
+                badge.classList.add('hidden');
+                checkoutBtn.disabled = true;
+            } else {
+                container.innerHTML = plate.map(item => {
+                    const uniqId = `${item.id}_${item.customization}`;
+                    return `
+                        <div class="flex gap-4 items-center animate-slide-up border-b border-orange-50 pb-4">
+                            <img src="${item.image}" class="w-16 h-16 rounded-2xl object-cover shadow-lg">
+                            <div class="flex-grow">
+                                <h4 class="font-black text-orange-950 text-sm leading-tight">${item.name}</h4>
+                                <p class="text-[9px] text-orange-600 font-bold tracking-tight">${item.customization}</p>
+                                <p class="text-xs font-black text-orange-600 mt-1">₹${item.price}</p>
+                            </div>
+                            <div class="flex items-center gap-3 bg-orange-50 p-1 rounded-xl shrink-0">
+                                <button onclick="updateQuantity('${uniqId}', -1)" class="w-7 h-7 bg-white rounded-lg font-black text-orange-950 shadow-sm">-</button>
+                                <span class="text-xs font-black">${item.quantity}</span>
+                                <button onclick="updateQuantity('${uniqId}', 1)" class="w-7 h-7 bg-white rounded-lg font-black text-orange-950 shadow-sm">+</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                badge.innerText = count;
+                badge.classList.remove('hidden');
+                checkoutBtn.disabled = false;
+            }
+
+            document.getElementById('subtotal-amount').innerHTML = `₹${sub.toFixed(2)}`;
+            if (discountAmount > 0) {
+                document.getElementById('discount-row').classList.remove('hidden');
+                document.getElementById('discount-amount').innerHTML = `-₹${discountAmount.toFixed(2)}`;
+            } else {
+                document.getElementById('discount-row').classList.add('hidden');
+            }
+            document.getElementById('total-amount').innerHTML = `₹${finalTotal.toFixed(2)}`;
+        }
+
+        // UI toggles
+        function togglePlate() {
+            document.getElementById('ai-chef-sidebar').classList.add('sidebar-hidden-right');
+            document.getElementById('plate-sidebar').classList.toggle('sidebar-hidden-right');
+            const plateSidebarClosed = document.getElementById('plate-sidebar').classList.contains('sidebar-hidden-right');
+            
+            if (plateSidebarClosed) {
+                document.getElementById('sidebar-overlay').classList.add('hidden');
+            } else {
+                document.getElementById('sidebar-overlay').classList.remove('hidden');
+            }
+        }
+
+        function toggleAIChef() {
+            document.getElementById('plate-sidebar').classList.add('sidebar-hidden-right');
+            document.getElementById('ai-chef-sidebar').classList.toggle('sidebar-hidden-right');
+            const aiSidebarClosed = document.getElementById('ai-chef-sidebar').classList.contains('sidebar-hidden-right');
+
+            if (aiSidebarClosed) {
+                document.getElementById('sidebar-overlay').classList.add('hidden');
+            } else {
+                document.getElementById('sidebar-overlay').classList.remove('hidden');
+            }
+        }
+
+        function closeAllSidebars() {
+            document.getElementById('plate-sidebar').classList.add('sidebar-hidden-right');
+            document.getElementById('ai-chef-sidebar').classList.add('sidebar-hidden-right');
+            document.getElementById('sidebar-overlay').classList.add('hidden');
+        }
+
+        // Place simulated order progress loop
+        function placeOrder() {
+            const token = Math.floor(100 + Math.random() * 899);
+            document.getElementById('token-display-large').innerText = `Token #${token}`;
+            document.getElementById('progress-modal').classList.replace('hidden', 'flex');
+            closeAllSidebars();
+            simulateProgress();
+        }
+
+        function simulateProgress() {
+            const bar = document.getElementById('order-loading-bar');
+            const step1 = document.getElementById('step-1');
+            const step2 = document.getElementById('step-2');
+            const step3 = document.getElementById('step-3');
+            const closeBtn = document.getElementById('close-progress-btn');
+            const celeb = document.getElementById('ready-celebration');
+
+            bar.style.width = "0%";
+            step1.className = "progress-step step-active flex items-start gap-6";
+            step2.className = "progress-step flex items-start gap-6";
+            step3.className = "progress-step flex items-start gap-6";
+            closeBtn.disabled = true;
+            closeBtn.innerText = "Cooking...";
+            closeBtn.className = "w-full bg-slate-100 text-slate-400 py-5 rounded-2xl font-black uppercase tracking-widest transition-all cursor-not-allowed";
+            celeb.classList.add('hidden');
+
+            playSoundChime('success');
+
+            setTimeout(() => {
+                bar.style.width = "33%";
+                step1.classList.replace('step-active', 'step-completed');
+                step2.classList.add('step-active');
+            }, 3000);
+
+            setTimeout(() => {
+                bar.style.width = "66%";
+                step2.classList.replace('step-active', 'step-completed');
+                step3.classList.add('step-active');
+            }, 7000);
+
+            setTimeout(() => {
+                bar.style.width = "100%";
+                step3.classList.replace('step-active', 'step-completed');
+                celeb.classList.remove('hidden');
+                closeBtn.disabled = false;
+                closeBtn.innerText = "Collect & Enjoy 🍲";
+                closeBtn.className = "w-full bg-green-600 text-white py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-green-700 transition-all shadow-xl active:scale-95 cursor-pointer";
+                playSoundChime('bell');
+            }, 11000);
+        }
+
+        function closeProgress() {
+            document.getElementById('progress-modal').classList.replace('flex', 'hidden');
+            plate = [];
+            discountPercent = 0;
+            document.getElementById('coupon-input').value = '';
+            document.getElementById('coupon-message').classList.add('hidden');
+            updatePlateUI();
+        }
+
+        // ================= GEMINI AI integration with exponential backoff retries =================
+
+        async function makeGeminiAPICall(prompt, systemInstruction, retries = 5, delay = 1000) {
+            const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: { parts: [{ text: systemInstruction }] }
+            };
+
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(apiEndpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        return data.candidates?.[0]?.content?.parts?.[0]?.text;
+                    }
+                } catch (error) {
+                    // Exponential backoff retry handler
+                }
+                await new Promise(res => setTimeout(res, delay * Math.pow(2, i)));
+            }
+            throw new Error("I had some trouble connecting to Chef Joy in the kitchen. Please check your internet connection.");
+        }
+
+        function appendMessageToChat(role, text) {
+            const chatContainer = document.getElementById('ai-chat-messages');
+            const messageDiv = document.createElement('div');
+            
+            if (role === 'user') {
+                messageDiv.className = "bg-orange-500/20 p-4 rounded-2xl border border-orange-500/30 max-w-[85%] self-end ml-auto text-right text-orange-100";
+                messageDiv.innerHTML = `
+                    <p class="font-bold text-orange-400 text-xs mb-1">You</p>
+                    <p class="leading-relaxed">${text}</p>
+                `;
+            } else {
+                messageDiv.className = "bg-orange-950/40 p-4 rounded-2xl border border-orange-900/20 max-w-[85%] self-start text-left";
+                messageDiv.innerHTML = `
+                    <p class="font-bold text-orange-400 text-xs mb-1">Chef Joy</p>
+                    <p class="leading-relaxed text-orange-100">${text}</p>
+                `;
+            }
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        async function submitAIChat() {
+            const inputElement = document.getElementById('ai-user-input');
+            const query = inputElement.value.trim();
+            if (!query) return;
+
+            inputElement.value = '';
+            appendMessageToChat('user', query);
+
+            // Add simulated typing indicator
+            const typingIndicator = document.createElement('div');
+            typingIndicator.id = "chef-typing";
+            typingIndicator.className = "bg-orange-950/40 p-4 rounded-2xl border border-orange-900/20 max-w-[85%] self-start text-xs font-bold text-orange-400 animate-pulse";
+            typingIndicator.innerText = "Chef Joy is cooking up a response...";
+            document.getElementById('ai-chat-messages').appendChild(typingIndicator);
+
+            const systemPrompt = `You are Chef Joy, the witty, cheerful, and energetic culinary assistant for "Campus Cravings", a campus foodie kitchen.
+            Our active menu dataset: ${JSON.stringify(menuItems, null, 2)}
+            Our active coupon promo codes: "FRESHER20" (20% off), "CRAVE10" (10% off).
+            
+            Rules:
+            1. Keep responses short and snappy (under 3 or 4 sentences). Students are busy studying!
+            2. Recommend actual menu items and help calculate budget options (like pairing 2 cheap dishes).
+            3. Address students with fun college-themed remarks (e.g., "midterms", "dorm life", "brain food", "fuel").
+            4. If they ask for food off the menu, guide them to close matches from our active menu list.`;
+
+            try {
+                const chefReply = await makeGeminiAPICall(query, systemPrompt);
+                document.getElementById('chef-typing').remove();
+                appendMessageToChat('chef', chefReply);
+                playSoundChime('bell');
+            } catch (err) {
+                document.getElementById('chef-typing').remove();
+                appendMessageToChat('chef', err.message || "Chef Joy is taking a quick coffee break! Please try again in a few seconds.");
+            }
+        }
+
+        function handleAISubmit(event) {
+            if (event.key === 'Enter') {
+                submitAIChat();
+            }
+        }
+
+        function sendQuickPrompt(promptText) {
+            document.getElementById('ai-user-input').value = promptText;
+            submitAIChat();
+        }
+
+        window.onload = () => handleFilterAndSearch();
+    </script>
+</body>
+</html>
+
+```
